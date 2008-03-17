@@ -1,0 +1,3 @@
+<ul class="navbar">{% for entry in navbar %}
+  <li{% if entry.selected %} class="selected"{% endif %}><a href="{{ entry.url }}" {% if entry.selected %} class="selected"{% endif %} title="{{ entry.title|escape }}">{{ entry.name|escape }}</a></li>{% endfor %}
+</ul>
