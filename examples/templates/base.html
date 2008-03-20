@@ -1,0 +1,61 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+{% load adminmedia %}
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="" >
+<head>
+<title>{% block title %}{% if title %}{{ title }}{% else %}NavBar Examples{% endif %}{% endblock title %}</title>
+<meta name="robots" content="NONE,NOARCHIVE" />
+<link rel="stylesheet" type="text/css" href="{% admin_media_prefix %}css/dashboard.css" />
+{% block scripts %}
+{% endblock scripts %}
+{% block styles %}
+<style >
+.selected { font-weight: bold; }
+ul.navbar-one { background-color: #F4F379; margin-bottom: 0px;}
+ul.navbar-two { background-color: #F0F0F0; margin-bottom: 0px; margin-top: 0px;}
+ul.navbar-three { margin-top: 0px; }
+
+ul.navbar-one LI { display: inline; margin-right: 5px; }
+ul.navbar-two LI { display: inline; margin-right: 5px; }
+ul.navbar-three LI { display: inline; margin-right: 5px; }
+</style>
+{% endblock styles %}
+</head>
+<body class="dashboard">
+
+<!-- Container -->
+<div id="container">
+    <!-- Header -->
+    <div id="header">
+        <div id="branding">
+
+<h1 id="site-name">NavBars and NavBar Tree Example</h1>
+
+        </div>
+
+        <div id="user-tools">
+            <a href="/admin/">admin</a>
+        </div>
+
+
+    </div>
+    <!-- END Header -->
+    <div class="breadcrumbs">{% for crumb in crumbs %}<a href="{{ crumb.path }}">{{ crumb.name }}</a>{% if not forloop.last %} &rsaquo; {% endif %}{% endfor %}</div>
+
+{% load navbar %}
+<div style="display: inline !important;">
+{% navbars %}
+</div>
+<div style="float: left; margin-right: 3em">
+{% navtree %}
+</div>
+    <!-- Content -->
+    <div>
+
+
+
+            {% block content %}
+            Content.
+            {% endblock content %}
+    </div>
+</div>
+</body>

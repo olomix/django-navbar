@@ -1,29 +1,39 @@
 from models import get_navtree, get_navbar
 from django.conf import settings
 
-def _getdefault(name, default=None):
-    try:
-        default = getattr(settings, name)
-    except: pass
-    return default
+MAX_DEPTH = getattr(settings, 'NAVBAR_MAX_DEPTH', -1)
+MARK_SELECTED = getattr(settings, 'NAVBAR_MARK_SELECTED', True)
+SHOW_DEPTH = getattr(settings, 'NAVBAR_SHOW_DEPTH', -1)
 
-MAX_DEPTH = _getdefault('NAVBAR_TREE_MAX_DEPTH', -1)
-MARK_SELECTED = _getdefault('NAVBAR_TREE_MARK_SELECTED', True)
-SHOW_DEPTH = _getdefault('NAVBAR_TREE_SHOW_DEPTH', -1)
+CRUMBS_STRIP_ROOT = getattr(settings, 'NAVBAR_CRUMBS_STRIP_ROOT', True)
+CRUMBS_HOME = getattr(settings, 'NAVBAR_CRUMBS_HOME', 'home')
 
 def crumbs(request):
     """adds the path 'crumbs'
     crumbs have the format of:
-    [ {'name': 'foo', 'path': 'foo'},
-      {'name': 'bar', 'path': 'foo/bar'},
-      {'name': 'bing', 'path': 'foo/bar/bing'} ]
+    [ {'name': 'foo',  'path': '/foo'},
+      {'name': 'bar',  'path': '/foo/bar'},
+      {'name': 'bing', 'path': '/foo/bar/bing'} ]
     """
-    rooturl = getattr(settings, 'ROOT_URL')
-    crumb_names = request.path[len(rooturl):].split('/')
-    crumb_names.insert(0, rooturl.strip('/'))
-    crumbs = [ {'name': name, 'path': '/'+'/'.join(crumb_names[:ind+1])+'/'}
-                    for ind, name in enumerate(crumb_names) if name ]
-    crumbs[0]['name'] = 'home'
+    rooturl = getattr(settings, 'ROOT_URL', '')
+    assert(request.path.startswith(rooturl))
+    if request.path != '/':
+        # split the path into the names /name1/name2/name3
+        crumb_names = request.path.strip('/').split('/')
+    else:
+        crumb_names = []
+    crumbs = [ {'name': name, 'path': '/' + '/'.join(crumb_names[:ind+1]) + '/'}
+                    for ind, name in enumerate(crumb_names) ]
+    # complete the crumbs home setting, and pop off if there is no home set.
+    if CRUMBS_HOME:
+        home = { 'name': CRUMBS_HOME, 'path': '/' }
+        crumbs.insert(0, home)
+
+    # strip off the root (if there is one)
+    if rooturl.strip('/') and CRUMBS_STRIP_ROOT:
+        crumbs = crumbs[len(rooturl.strip('/').split('/')):]
+        if CRUMBS_HOME:
+            crumbs[0]['name'] = CRUMBS_HOME
     return { 'crumbs': crumbs }
 
 def navbar(request):
@@ -34,7 +44,7 @@ def navbar(request):
     return { 'navbar': navbar }
 
 def navbars(request):
-    """adds the variable 'navbar' to the context"
+    """adds the variable 'navbars' to the context"
     """
     nav    = get_navtree(request.user, MAX_DEPTH)
     navbar = nav['tree']

@@ -6,16 +6,15 @@ from django.contrib.auth.models import Group
 from django.core.validators import ValidationError
 from django.core.cache import cache
 from django.db.models.query import Q, QNot
-from pycon.core import *
-from cPickle import dumps, loads, HIGHEST_PROTOCOL
+from django.utils.translation import ugettext_lazy as _
 import re
 
-USER_TYPE_CHOICES = Choices([
-    ('A', 'Anonymous'),
-    ('L', 'Logged In'),
-    ('S', 'Staff'),
-    ('X', 'Superuser'),
-])
+USER_TYPE_CHOICES = [
+    ('A', _('Anonymous')),
+    ('L', _('Logged In')),
+    ('S', _('Staff')),
+    ('X', _('Superuser')),
+]
 
 url_re = re.compile(r'^(https?:/)?/\S+$')
 
@@ -82,9 +81,9 @@ class NavBarEntry(models.Model):
                                validator_list=[IsNotCircular])
 
     ## advanced permissions
-    user_type = models.CharField('user login type', maxlength=1,
+    user_type = models.CharField('user login type', max_length=1,
                                  choices=USER_TYPE_CHOICES,
-                                 default=USER_TYPE_CHOICES.default)
+                                 default=USER_TYPE_CHOICES[0])
     groups    = models.ManyToManyField(Group, null=True, blank=True,
                                        filter_interface = models.HORIZONTAL)
 
@@ -117,18 +116,16 @@ class NavBarEntry(models.Model):
 def Qperm(user=None):
     exQ = Q()
     if user is None or user.is_anonymous():
-        exQ = Q(user_type__exact = USER_TYPE_CHOICES.find('Anonymous')) & Q(
+        exQ = Q(user_type__exact = 'A') & Q(
             groups__isnull=True)
     elif user.is_superuser:
         pass
     elif user.is_staff:
-        exQ = (Q(user_type__exact = USER_TYPE_CHOICES.find('Anonymous')) |
-               Q(user_type__exact = USER_TYPE_CHOICES.find('Logged In')) |
-               Q(user_type__exact = USER_TYPE_CHOICES.find('Staff'))) & (
+        exQ = (Q(user_type__exact = 'A') | Q(user_type__exact = 'L') |
+               Q(user_type__exact = 'S')) & (
                     Q(groups__in=user.groups.all()) | Q(groups__isnull=True))
     else:
-        exQ = (Q(user_type__exact = USER_TYPE_CHOICES.find('Anonymous')) |
-               Q(user_type__exact = USER_TYPE_CHOICES.find('Logged In'))) & (
+        exQ = (Q(user_type__exact = 'A') | Q(user_type__exact = 'L')) & (
                     Q(groups__in=user.groups.all()) | Q(groups__isnull=True))
     return exQ
 
