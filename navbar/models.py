@@ -111,7 +111,7 @@ class NavBarEntry(models.Model):
     def save(self):
         cache.delete('site_navtree')
         cache.delete('site_navtree_super')
-        return super(NavBarEntry, self).save(self)
+        return super(NavBarEntry, self).save()
 
 def Qperm(user=None):
     exQ = Q()
