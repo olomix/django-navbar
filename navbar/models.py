@@ -94,7 +94,7 @@ class NavBarEntry(models.Model):
         verbose_name = 'navigation bar element'
         verbose_name_plural = 'navigation bar elements'
         #order_with_respect_to = 'parent' # doesn't woth with self relations
-        ordering = ('parent', 'order', 'name', 'url')
+        ordering = ('parent__id', 'order', 'name', 'url')
     class Admin:
         fields = (
             (None, {'fields': ('name', 'title', 'url', 'order', 'parent')}),
