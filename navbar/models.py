@@ -16,7 +16,7 @@ USER_TYPE_CHOICES = [
     ('X', _('Superuser')),
 ]
 
-url_re = re.compile(r'^(https?:/)?/\S+$')
+url_re = re.compile(r'^(https?://([a-zA-Z0-9]+\.)+[a-zA-Z0-9]([:@][a-zA-Z0-9@%-_\.]){0,2})?/\S*$')
 
 def IsNotCircular(field_data, all_data):
     if 'id' not in all_data or all_data['id'] is None or not all_data['parent']:
@@ -83,7 +83,7 @@ class NavBarEntry(models.Model):
     ## advanced permissions
     user_type = models.CharField('user login type', max_length=1,
                                  choices=USER_TYPE_CHOICES,
-                                 default=USER_TYPE_CHOICES[0])
+                                 default=USER_TYPE_CHOICES[0][0])
     groups    = models.ManyToManyField(Group, null=True, blank=True,
                                        filter_interface = models.HORIZONTAL)
 
