@@ -43,19 +43,31 @@ def navbar(request):
     for ent in navbar: ent.selected = request.path.startswith(ent.url)
     return { 'navbar': navbar }
 
+def _mark_selected(path, byurl):
+    """process the tree (flattened and sorted by url) to mark the entries
+    selected which appear on the path, as well as their parent entries.
+    """
+    clear = []
+    check = path.startswith
+    for url, val in byurl:
+        pt = val['path_type']
+        if pt == 'N': continue
+        elif pt != 'A' and path != url: continue
+        elif check(url):
+            while val:
+                if val['selected']: break
+                if (val['path_type'] == 'N' or (val['path_type'] == 'E' and
+                        path != val['url'])): clear.append(val)
+                val['selected'] = True
+                val = val['parent']
+    for ent in clear: ent['selected'] = False
+
 def navbars(request):
     """adds the variable 'navbars' to the context"
     """
     nav    = get_navtree(request.user, MAX_DEPTH)
     navbar = nav['tree']
-    byurl  = nav['byurl']
-    check = request.path.startswith
-    for url, val in byurl.iteritems():
-        if check(url):
-            while val:
-                if val['selected']: break
-                val['selected'] = True
-                val = val['parent']
+    _mark_selected(request.path, nav['byurl'])
     navbars = [ navbar ]
     found = True
     while navbar and found:
@@ -80,12 +92,5 @@ def navtree(request):
                 'url': '/news/aug/', 'children': [] }, ]]
     """
     navbar = get_navtree(request.user, MAX_DEPTH)
-    if MARK_SELECTED:
-        check = request.path.startswith
-        for url, val in navbar['byurl'].iteritems():
-            if check(url):
-                while val:
-                    if val['selected']: break
-                    val['selected'] = True
-                    val = val['parent']
+    if MARK_SELECTED: _mark_selected(request.path, navbar['byurl'])
     return {'navtree':  navbar['tree']}

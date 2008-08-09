@@ -5,7 +5,7 @@ from django.conf import settings
 from django.contrib.auth.models import Group
 from django.core.validators import ValidationError
 from django.core.cache import cache
-from django.db.models.query import Q, QNot
+from django.db.models.query import Q
 from django.utils.translation import ugettext_lazy as _
 import re
 
@@ -14,6 +14,13 @@ USER_TYPE_CHOICES = [
     ('L', _('Logged In')),
     ('S', _('Staff')),
     ('X', _('Superuser')),
+]
+
+SELECTION_TYPE_CHOICES = [
+    ('N', _('Never')),
+    ('E', _('Exact')),
+    ('P', _('ExactOrParent')),
+    ('A', _('OnPathOrParent (default)'))
 ]
 
 url_re = re.compile(r'^(https?://([a-zA-Z0-9]+\.)+[a-zA-Z0-9]([:@][a-zA-Z0-9@%-_\.]){0,2})?/\S*$')
@@ -70,9 +77,9 @@ class NavBarRootManager(models.Manager):
 
 class NavBarEntry(models.Model):
     name   = models.CharField(max_length=50,
-                              help_text="text seen in the menu")
+                              help_text=_("text seen in the menu"))
     title  = models.CharField(max_length=50, blank=True,
-                              help_text="mouse hover description")
+                              help_text=_("mouse hover description"))
     url    = models.CharField(max_length=200, validator_list=[
                                                     isValidLocalOrServerURL])
     order  = models.IntegerField(default=0)
@@ -81,11 +88,15 @@ class NavBarEntry(models.Model):
                                validator_list=[IsNotCircular])
 
     ## advanced permissions
-    user_type = models.CharField('user login type', max_length=1,
+    path_type = models.CharField(_('path match type'), max_length=1,
+                                 choices=SELECTION_TYPE_CHOICES, default='A',
+                                 help_text=_("Control how this element is "
+                                             "marked 'selected' based on the "
+                                             "request path."))
+    user_type = models.CharField(_('user login type'), max_length=1,
                                  choices=USER_TYPE_CHOICES,
                                  default=USER_TYPE_CHOICES[0][0])
-    groups    = models.ManyToManyField(Group, null=True, blank=True,
-                                       filter_interface = models.HORIZONTAL)
+    groups    = models.ManyToManyField(Group, null=True, blank=True)
 
     objects = models.Manager()
     top     = NavBarRootManager()
@@ -95,15 +106,6 @@ class NavBarEntry(models.Model):
         verbose_name_plural = 'navigation bar elements'
         #order_with_respect_to = 'parent' # doesn't woth with self relations
         ordering = ('parent__id', 'order', 'name', 'url')
-    class Admin:
-        fields = (
-            (None, {'fields': ('name', 'title', 'url', 'order', 'parent')}),
-            ('Advanced Permissions', {'classes': 'collapse',
-                             'fields': ('user_type', 'groups', )}),
-        )
-        list_filter = ('parent',)
-        list_display = ('name', 'url', 'order', 'parent')
-        search_fields = ('url', 'name', 'title')
 
     def __unicode__(self):
         return self.name
@@ -135,7 +137,7 @@ def generate_navtree(user=None, maxdepth=-1):
     urls = {}
     def navent(ent, invdepth, parent):
         current = {'name': ent.name, 'title': ent.title, 'url': ent.url,
-                   'selected': False, 'parent': parent}
+                   'selected': False, 'path_type': ent.path_type, 'parent': parent}
         urls.setdefault(ent.url, current)
         current['children'] = navlevel(ent.children, invdepth-1, current)
         return current
@@ -144,6 +146,7 @@ def generate_navtree(user=None, maxdepth=-1):
         return [ navent(ent, invdepth, parent)
                         for ent in base.filter(permQ).distinct() ]
     tree = navlevel(NavBarEntry.top, maxdepth)
+    urls = sorted(urls.iteritems(), key=lambda x: x[0], reverse=True)
     return {'tree': tree, 'byurl': urls}
 
 def get_navtree(user=None, maxdepth=-1):
