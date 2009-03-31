@@ -8,7 +8,8 @@ from django.db.models.query import Q
 from django.utils.translation import ugettext_lazy as _
 
 USER_TYPE_CHOICES = [
-    ('A', _('Anonymous')),
+    ('E', _('Everybody')),
+    ('A', _('Anonymous Only')),
     ('L', _('Logged In')),
     ('S', _('Staff')),
     ('X', _('Superuser')),
@@ -68,16 +69,16 @@ class NavBarEntry(models.Model):
 def Qperm(user=None):
     exQ = Q()
     if user is None or user.is_anonymous():
-        exQ = Q(user_type__exact = 'A') & Q(
+        exQ = (Q(user_type__exact = 'A') | Q(user_type__exact = 'E')) & Q(
             groups__isnull=True)
     elif user.is_superuser:
-        pass
+        exQ = ~Q(user_type__exact = 'A')
     elif user.is_staff:
-        exQ = (Q(user_type__exact = 'A') | Q(user_type__exact = 'L') |
+        exQ = (Q(user_type__exact = 'E') | Q(user_type__exact = 'L') |
                Q(user_type__exact = 'S')) & (
                     Q(groups__in=user.groups.all()) | Q(groups__isnull=True))
     else:
-        exQ = (Q(user_type__exact = 'A') | Q(user_type__exact = 'L')) & (
+        exQ = (Q(user_type__exact = 'E') | Q(user_type__exact = 'L')) & (
                     Q(groups__in=user.groups.all()) | Q(groups__isnull=True))
     return exQ
 
