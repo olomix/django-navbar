@@ -3,11 +3,9 @@
 from django.db import models
 from django.conf import settings
 from django.contrib.auth.models import Group
-from django.core.validators import ValidationError
 from django.core.cache import cache
 from django.db.models.query import Q
 from django.utils.translation import ugettext_lazy as _
-import re
 
 USER_TYPE_CHOICES = [
     ('A', _('Anonymous')),
@@ -23,52 +21,6 @@ SELECTION_TYPE_CHOICES = [
     ('A', _('OnPathOrParent (default)'))
 ]
 
-url_re = re.compile(r'^(https?://([a-zA-Z0-9]+\.)+[a-zA-Z0-9]([:@][a-zA-Z0-9@%-_\.]){0,2})?/\S*$')
-
-def IsNotCircular(field_data, all_data):
-    if 'id' not in all_data or all_data['id'] is None or not all_data['parent']:
-        return
-    cid = int(all_data['id'])
-    pid = int(all_data['parent'])
-    try:
-        while pid:
-            parent = NavBarEntry.objects.get(pk=pid)
-            pid = parent.parent_id
-            if pid is None: return
-            if pid == cid:
-                raise ValidationError(u"Creates a cyclical reference.")
-    except NavBarEntry.DoesNotExist:
-        raise ValidationError("Could not find parent: " + str(pid) +
-                              " Corrupt DB?")
-
-def isValidLocalOrServerURL(field_data, all_data):
-    if not url_re.search(field_data):
-        raise ValidationError(u"A valid URL is required.")
-    ## RED_FLAG: add signals based local check (from request object)
-    if field_data.startswith('http'):
-        import urllib2
-        try:
-            from django.conf import settings
-            URL_VALIDATOR_USER_AGENT = settings.URL_VALIDATOR_USER_AGENT
-        except (ImportError, EnvironmentError):
-            # It's OK if Django settings aren't configured.
-            URL_VALIDATOR_USER_AGENT = 'Django (http://www.djangoproject.com/)'
-        headers = {
-            "Accept": "text/xml,application/xml,application/xhtml+xml,"
-                      "text/html;q=0.9,text/plain;q=0.8,image/png,*/*;q=0.5",
-            "Accept-Language": "en-us,en;q=0.5",
-            "Accept-Charset": "ISO-8859-1,utf-8;q=0.7,*;q=0.7",
-            "Connection": "close",
-            "User-Agent": URL_VALIDATOR_USER_AGENT,
-        }
-        try:
-            req = urllib2.Request(field_data, None, headers)
-            u = urllib2.urlopen(req)
-        except ValueError:
-            raise ValidationError(u'Enter a valid URL.')
-        except: # urllib2.URLError, httplib.InvalidURL, etc.
-            raise ValidationError(u'This URL appears to be a broken link.')
-
 class NavBarRootManager(models.Manager):
     def get_query_set(self):
         all = super(NavBarRootManager, self).get_query_set()
@@ -80,12 +32,10 @@ class NavBarEntry(models.Model):
                               help_text=_("text seen in the menu"))
     title  = models.CharField(max_length=50, blank=True,
                               help_text=_("mouse hover description"))
-    url    = models.CharField(max_length=200, validator_list=[
-                                                    isValidLocalOrServerURL])
+    url    = models.CharField(max_length=200)
     order  = models.IntegerField(default=0)
     parent = models.ForeignKey('self', related_name='children',
-                               blank=True, null=True,
-                               validator_list=[IsNotCircular])
+                               blank=True, null=True)
 
     ## advanced permissions
     path_type = models.CharField(_('path match type'), max_length=1,
