@@ -39,22 +39,23 @@ class NavBarEntryAdminForm(forms.ModelForm):
                 raise forms.ValidationError(u'This URL appears to be a broken link.')
         return url
 
-    def clean_parent(self):
-        cid = self.cleaned_data["id"]
-        parent = self.cleaned_data["parent"]
-        if not cid or not parent: return parent
-        pid = parent
-        try:
-            while pid:
-                parent = NavBarEntry.objects.get(pk=pid)
-                pid = parent.parent_id
-                if pid is None: return
-                if pid == cid:
-                    raise forms.ValidationError(u"Creates a cyclical reference.")
-        except NavBarEntry.DoesNotExist:
-            raise forms.ValidationError("Could not find parent: " + str(pid) +
-                                        " Corrupt DB?")
-        return parent
+        def clean_parent(self):
+            cid = self.instance.pk
+            parent = self.cleaned_data["parent"]
+            try:
+                pids = []
+                while parent:
+                    parent = NavBarEntry.objects.get(pk=parent.id)                
+                    if parent.id in pids:
+                        raise forms.ValidationError(u"Creates a cyclical reference.")
+                    elif parent.parent != None:
+                        parent = parent.parent
+                    else: break
+                    pids.append(parent.id)
+            except NavBarEntry.DoesNotExist:
+                raise forms.ValidationError("Could not find parent: " + str(pid) +
+                                            " Corrupt DB?")
+            return parent
 
 class NavBarEntryAdmin(admin.ModelAdmin):
         form = NavBarEntryAdminForm
