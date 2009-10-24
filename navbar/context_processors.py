@@ -59,9 +59,10 @@ def navbar(request):
     """adds the variable 'navbar' to the context"
     """
     navbar = get_navbar(request.user)
-    byurl = [ (e.url, e) for e in
-                sorted(navbar, key=lambda x: x.url, reverse=True) ]
-    _mark_selected(request.path, byurl)
+    if MARK_SELECTED:
+        byurl = [ (e.url, e) for e in
+                    sorted(navbar, key=lambda x: x.url, reverse=True) ]
+        _mark_selected(request.path, byurl)
     return { 'navbar': navbar }
 
 def navbars(request):
