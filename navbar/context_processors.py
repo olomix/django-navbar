@@ -60,8 +60,11 @@ def navbar(request):
     """
     navbar = get_navbar(request.user)
     if MARK_SELECTED:
-        byurl = [ (e.url, e) for e in
-                    sorted(navbar, key=lambda x: x.url, reverse=True) ]
+        base = {'selected': False, 'parent': None}
+        navbar = navbar.values()
+        for e in navbar: e.update(base)
+        byurl = [ (e['url'], e) for e in
+                    sorted(navbar, key=lambda x: x['url'], reverse=True) ]
         _mark_selected(request.path, byurl)
     return { 'navbar': navbar }
 
