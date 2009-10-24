@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='django-navbar',
-    version=__import__('app_plugins').__version__,
+    version=__import__('navbar').__version__,
     description='Reusable django application managing navigation menues with '
                 'permissions, auto selection and crumbs.',
     long_description=open('docs/overview.txt').read(),
