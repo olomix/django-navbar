@@ -1,4 +1,4 @@
-from util import *
+from utils import *
 
 VERSION = (0, 1, 1, "rc1")
 
