@@ -1,4 +1,4 @@
-from models import get_navtree, get_navbar
+from util import get_navtree, get_navbar
 from django.conf import settings
 
 MAX_DEPTH = getattr(settings, 'NAVBAR_MAX_DEPTH', -1)

@@ -1,0 +1,10 @@
+===========================
+Django Navbar
+===========================
+
+This is a generic application for managing menus in Django.
+
+For installation instructions, see the file "INSTALL" in this
+directory; for instructions on how to use this application, and on
+what it provides, see the file "overview.txt" in the "docs/"
+directory.

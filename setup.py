@@ -2,11 +2,15 @@ from setuptools import setup, find_packages
 
 setup(
     name='django-navbar',
-    version='0.1.0',
-    description='',
+    version=__import__('app_plugins').__version__,
+    description='Reusable django application managing navigation menues with '
+                'permissions, auto selection and crumbs.',
+    long_description=open('docs/overview.txt').read(),
     author='Doug Napoleone',
     author_email='doug.napoleone@gmail.com',
     url='http://code.google.com/p/django-navbar/',
+    license = 'MIT License',
+    platforms = ['any'],
     packages=find_packages(),
     classifiers=[
         'Development Status :: 3 - Alpha',
@@ -19,5 +23,4 @@ setup(
     ],
     include_package_data=True,
     zip_safe=False,
-    install_requires=['setuptools'],
 )
