@@ -36,13 +36,6 @@ def crumbs(request):
             crumbs[0]['name'] = CRUMBS_HOME
     return { 'crumbs': crumbs }
 
-def navbar(request):
-    """adds the variable 'navbar' to the context"
-    """
-    navbar = get_navbar(request.user)
-    for ent in navbar: ent.selected = request.path.startswith(ent.url)
-    return { 'navbar': navbar }
-
 def _mark_selected(path, byurl):
     """process the tree (flattened and sorted by url) to mark the entries
     selected which appear on the path, as well as their parent entries.
@@ -61,6 +54,15 @@ def _mark_selected(path, byurl):
                 val['selected'] = True
                 val = val['parent']
     for ent in clear: ent['selected'] = False
+
+def navbar(request):
+    """adds the variable 'navbar' to the context"
+    """
+    navbar = get_navbar(request.user)
+    byurl = [ (e.url, e) for e in
+                sorted(navbar, key=lambda x: x.url, reverse=True) ]
+    _mark_selected(request.path, byurl)
+    return { 'navbar': navbar }
 
 def navbars(request):
     """adds the variable 'navbars' to the context"
