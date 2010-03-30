@@ -3,8 +3,20 @@
 from django.db import models
 from django.conf import settings
 from django.contrib.auth.models import Group
-from django.core.cache import cache
+from django.core.cache.backends.locmem import CacheClass as LocalMemCache
 from django.utils.translation import ugettext_lazy as _
+
+NAVBAR_LOCAL_CACHE_PARAMS = getattr(settings, 'NAVBAR_LOCAL_CACHE_PARAMS',
+                                     {'cull_frequency': 4,
+                                      'max_entries': 3000,
+                                     'timeout': 60*60*24*3, # 3 days
+                                     })
+
+NAVBAR_USE_LOCAL_CACHE = getattr(settings, 'NAVBAR_USE_LOCAL_CACHE', True)
+if NAVBAR_USE_LOCAL_CACHE:
+    cache = LocalMemCache('localhost', NAVBAR_LOCAL_CACHE_PARAMS)
+else:
+    from django.core.cache import cache
 
 USER_TYPE_CHOICES = [
     ('E', _('Everybody')),
@@ -61,7 +73,22 @@ class NavBarEntry(models.Model):
         return self.name
 
     def save(self):
-        cache.delete('site_navtree')
-        cache.delete('site_navtree_super')
+        global cache
+        if not NAVBAR_USE_LOCAL_CACHE:
+            cache.delete('site_navtree')
+            cache.delete('site_navtree_super')
+        else:
+            del cache
+            cache = LocalMemCache('localhost', NAVBAR_LOCAL_CACHE_PARAMS)
         return super(NavBarEntry, self).save()
 
+    def delete(self, *args, **kwdargs):
+        global cache
+        if not NAVBAR_USE_LOCAL_CACHE:
+            cache.delete('site_navtree')
+            cache.delete('site_navtree_super')
+        else:
+            del cache
+            cache = LocalMemCache('localhost', NAVBAR_LOCAL_CACHE_PARAMS)
+        return super(NavBarEntry, self).delete(*args, **kwdargs)
+        
