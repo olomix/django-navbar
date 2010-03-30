@@ -78,8 +78,9 @@ class NavBarEntry(models.Model):
             cache.delete('site_navtree')
             cache.delete('site_navtree_super')
         else:
-            del cache
+            oldcache = cache
             cache = LocalMemCache('localhost', NAVBAR_LOCAL_CACHE_PARAMS)
+            del oldcache
         return super(NavBarEntry, self).save()
 
     def delete(self, *args, **kwdargs):
@@ -88,7 +89,7 @@ class NavBarEntry(models.Model):
             cache.delete('site_navtree')
             cache.delete('site_navtree_super')
         else:
-            del cache
+            oldcache = cache
             cache = LocalMemCache('localhost', NAVBAR_LOCAL_CACHE_PARAMS)
+            del oldcache
         return super(NavBarEntry, self).delete(*args, **kwdargs)
-        
