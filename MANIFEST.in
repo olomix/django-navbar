@@ -5,5 +5,5 @@ include MANIFEST.in
 include README
 include examples/examples.db
 recursive-include docs *.txt
-recursive-include examples/templates/ *.html
-recursive-include navbar/templates/navbar/ *.html
+recursive-include examples/templates *.html
+recursive-include navbar/templates/navbar *.html

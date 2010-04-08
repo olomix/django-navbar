@@ -36,7 +36,7 @@ def generate_navtree(user=None, maxdepth=-1):
     return {'tree': tree, 'byurl': urls}
 
 def get_navtree(user=None, maxdepth=-1):
-    from django.core.cache import cache
+    import models
     cachename = 'site_navtree'
     timeout = 60*60*24
     if user is not None and not user.is_anonymous():
@@ -45,10 +45,10 @@ def get_navtree(user=None, maxdepth=-1):
         else:
             cachename = 'site_navtree_' + str(user.id)
             timeout = 60*15
-    data = cache.get(cachename)
+    data = models.cache.get(cachename)
     if data is None:
         data = generate_navtree(user, maxdepth)
-        cache.set(cachename, data, timeout)
+        models.cache.set(cachename, data, timeout)
     return data
 
 def get_navbar(user=None):

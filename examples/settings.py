@@ -1,6 +1,13 @@
 # Django settings for {{ project_name }} project.
 import os
 
+if os.environ.get('WING_DEBUG', False):
+    import wingdbstub
+
+if os.environ.get('KOMODO_DEBUG', False):
+    ## There.. happy? use settings.brk() to break.. I think..
+    from dbgp.client import brk
+
 ROOTDIR = os.path.abspath(os.path.dirname(__file__))
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG

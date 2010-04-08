@@ -10,7 +10,7 @@ class NavBarEntryAdminForm(forms.ModelForm):
         model = NavBarEntry
 
     def clean_url(self):
-        url = self.cleaned_data["url"]
+        url = self.cleaned_data["url"].strip()
         if not url_re.search(url):
             raise forms.ValidationError("A valid URL is required.")
         ## RED_FLAG: add signals based local check (from request object)
