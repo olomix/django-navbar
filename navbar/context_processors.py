@@ -44,8 +44,10 @@ def _mark_selected(path, byurl):
     check = path.startswith
     for url, val in byurl:
         pt = val['path_type']
-        if pt == 'N': continue
-        elif pt != 'A' and path != url: continue
+        if pt == 'N': 
+            continue
+        elif pt != 'A' and path != url: 
+            continue
         elif check(url):
             while val:
                 if val['selected']: break
@@ -55,17 +57,25 @@ def _mark_selected(path, byurl):
                 val = val['parent']
     for ent in clear: ent['selected'] = False
 
+def _mark_active(path, byurl):
+    check = path.startswith
+    for url, val in byurl:
+        if check(url):
+            val['active'] = True
+            break
+
 def navbar(request):
     """adds the variable 'navbar' to the context"
     """
     navbar = get_navbar(request.user)
     if MARK_SELECTED:
-        base = {'selected': False, 'parent': None}
+        base = {'selected': False, 'parent': None, 'active': False}
         navbar = navbar.values()
         for e in navbar: e.update(base)
         byurl = [ (e['url'], e) for e in
                     sorted(navbar, key=lambda x: x['url'], reverse=True) ]
         _mark_selected(request.path, byurl)
+        _mark_active(request.path, byurl)
     return { 'navbar': navbar }
 
 def navbars(request):

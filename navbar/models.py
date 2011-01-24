@@ -7,8 +7,8 @@ from django.core.cache.backends.locmem import CacheClass as LocalMemCache
 from django.utils.translation import ugettext_lazy as _
 
 NAVBAR_LOCAL_CACHE_PARAMS = getattr(settings, 'NAVBAR_LOCAL_CACHE_PARAMS',
-                                     {'cull_frequency': 4,
-                                      'max_entries': 3000,
+                                    {'cull_frequency': 4,
+                                     'max_entries': 3000,
                                      'timeout': 60*60*24*3, # 3 days
                                      })
 
