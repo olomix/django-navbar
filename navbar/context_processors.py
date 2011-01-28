@@ -60,7 +60,12 @@ def _mark_selected(path, byurl):
 def _mark_active(path, byurl):
     check = path.startswith
     for url, val in byurl:
+        pt = val['path_type']
         if check(url):
+            if pt == 'N':
+                break
+            if pt == 'E' and path != url:
+                break
             val['active'] = True
             break
 
